@@ -1,7 +1,4 @@
 test_name "Test behavior of a directory environment when environmentpath is set in the master section"
-
-skip_test "test broken per PUP-4659"
-
 require 'puppet/acceptance/environment_utils'
 extend Puppet::Acceptance::EnvironmentUtils
 require 'puppet/acceptance/classifier_utils'
