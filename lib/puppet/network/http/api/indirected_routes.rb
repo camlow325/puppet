@@ -1,5 +1,6 @@
 require 'puppet/network/authorization'
 require 'puppet/network/http/api/indirection_type'
+require 'securerandom'
 
 class Puppet::Network::HTTP::API::IndirectedRoutes
   include Puppet::Network::Authorization
@@ -104,6 +105,8 @@ class Puppet::Network::HTTP::API::IndirectedRoutes
       raise ArgumentError, "No request key specified in #{uri}"
     end
 
+    key = URI.unescape(key)
+
     [indirection, method, key, params]
   end
 
@@ -182,7 +185,21 @@ class Puppet::Network::HTTP::API::IndirectedRoutes
   # Execute our save.
   def do_save(indirection, key, params, request, response)
     formatter = accepted_response_formatter_or_pson_for(indirection.model, request)
-    sent_object = read_body_into_model(indirection.model, request)
+
+    if indirection.name == :report
+      Puppet.info "* using cached report"
+      @@cached_report ||= read_body_into_model(indirection.model, request)
+      #sent_object = Puppet::Transaction::Report.new("apply", nil, "production", "a4e13b86-cd6b-4e68-84a0-4f7c73eaffa5")
+      sent_object = @@cached_report
+      sent_object.host = key
+      sent_object.transaction_uuid = SecureRandom.uuid
+      sent_object.instance_variable_set(:@time, Time.now)
+    else 
+      sent_object = read_body_into_model(indirection.model, request)
+    end 
+
+    #Puppet.info "request is: #{request.class}, which is: #{request}"
+    #Puppet.info "body read is: #{sent_object.class}, which is: #{sent_object}"
 
     result = indirection.save(sent_object, key)
 
