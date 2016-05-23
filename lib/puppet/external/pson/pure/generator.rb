@@ -1,18 +1,12 @@
-require 'json/pure'
+require 'json'
 
 module PSON
-
-  def utf8_to_pson(string)
-    JSON.utf8_to_json(string)
-  end
-
-  module_function :utf8_to_pson
 
   module Pure
     module Generator
       # This class is used to create State instances, that are use to hold data
       # while generating a PSON text from a Ruby data structure.
-      class State < JSON::Pure::Generator::State
+      class State < JSON::Ext::Generator::State
       end
 
       module GeneratorMethods
@@ -67,27 +61,14 @@ module PSON
             # Raw Strings are PSON Objects (the raw bytes are stored in an array for the
             # key "raw"). The Ruby String can be created by this module method.
             def pson_create(o)
-              o['raw'].pack('C*')
+              json_create(o)
             end
           end
 
           # Extends _modul_ with the String::Extend module.
           def self.included(modul)
+            modul.extend JSON::Ext::Generator::GeneratorMethods::String::Extend
             modul.extend Extend
-          end
-
-          # This method creates a raw object hash, that can be nested into
-          # other data structures and will be unparsed as a raw string. This
-          # method should be used, if you want to convert raw strings to PSON
-          # instead of UTF-8 strings, e.g. binary data.
-          def to_pson_raw_object
-            to_json_raw_object
-          end
-
-          # This method creates a PSON text from the result of
-          # a call to to_pson_raw_object of this String.
-          def to_pson_raw(*args)
-            to_pson_raw_object.to_pson(*args)
           end
         end
 
