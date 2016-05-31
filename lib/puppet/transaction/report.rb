@@ -345,11 +345,11 @@ class Puppet::Transaction::Report
   end
 
   def self.supported_formats
-    [:pson, :yaml]
+    [:pson, :yaml, :msgpack]
   end
 
   def self.default_format
-    :pson
+    :msgpack
   end
 
   private
