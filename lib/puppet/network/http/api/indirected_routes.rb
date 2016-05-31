@@ -1,5 +1,6 @@
 require 'puppet/network/authorization'
 require 'puppet/network/http/api/indirection_type'
+require 'securerandom'
 
 class Puppet::Network::HTTP::API::IndirectedRoutes
   include Puppet::Network::Authorization
@@ -185,6 +186,12 @@ class Puppet::Network::HTTP::API::IndirectedRoutes
   def do_save(indirection, key, params, request, response)
     formatter = accepted_response_formatter_or_pson_for(indirection.model, request)
     sent_object = read_body_into_model(indirection.model, request)
+
+    if indirection.name == :report
+      sent_object.host = key
+      sent_object.transaction_uuid = SecureRandom.uuid
+      sent_object.instance_variable_set(:@time, Time.now)
+    end
 
     result = indirection.save(sent_object, key)
 
