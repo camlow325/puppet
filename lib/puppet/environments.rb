@@ -323,6 +323,14 @@ module Puppet::Environments
 
     # @!macro loader_list
     def list
+      @loader.list.each do |env|
+        if !@cache[env.name]
+          cache_entry = entry(env)
+          @cache_expiration_service.created(env)
+          add_entry(env.name, cache_entry)
+        end
+      end
+      clear_all_expired
       @loader.list
     end
 
